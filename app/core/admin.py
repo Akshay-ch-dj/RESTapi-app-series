@@ -35,5 +35,6 @@ class UserAdmin(BaseUserAdmin):
         }),
     )
 
+
 # Register the models(with modified adminpage)
 admin.site.register(models.User, UserAdmin)
