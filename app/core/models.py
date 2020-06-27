@@ -48,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # By default no one is a staff
     is_staff = models.BooleanField(default=False)
 
-    # Assign the 'UserManager' to the 'objects'
+    # Assign the 'UserManager' to the 'objects'(inbuilt class attr- modified)
     objects = UserManager()
 
     # Need a username field, changed the username field to email field
