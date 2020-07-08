@@ -7,8 +7,7 @@ class AdminSiteTests(TestCase):
     """
     Tests for the admin functions
     """
-
-    # 0) Setup Function, (sometimes there need to run setup tasks before test)
+    # (0) Setup Function (sometimes there need to run setup tasks before test)
     def setUp(self):
         """Creating test client, setup for admin tests"""
         # A new User -logged in(ie. auth.), and another one- not authenticated
