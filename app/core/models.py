@@ -2,6 +2,7 @@ from django.db import models
 # The base classes need to use when customizing or overriding Django User model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
+from django.conf import settings
 
 # Custom manager-default django behaviour changed, usname replaced with Email
 
@@ -58,3 +59,21 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         """Return String Representation of the user( by email address)"""
         return self.email
+
+
+# For the series app 'Tag' model
+class Tag(models.Model):
+    """
+    Tag to attach to the series
+    """
+    name = models.CharField(max_length=255)
+    # user-> foreign key to 'User' object-but not address it directly instead
+    # use the 'AUTH_USER-MODEL' from the django settings
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        """String representation"""
+        return self.name

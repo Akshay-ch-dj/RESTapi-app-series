@@ -4,6 +4,15 @@ from django.test import TestCase
 # settings so that - models only need to change there only.
 from django.contrib.auth import get_user_model
 
+from core import models
+
+
+# Helper function to create users (for series app)
+def sample_user(email='test@akshaydev.com', password='testpass'):
+    """Create a sample user"""
+    # Basic user for testing the model(tag model)
+    return get_user_model().objects.create_user(email, password)
+
 
 class ModelTests(TestCase):
     """
@@ -56,3 +65,13 @@ class ModelTests(TestCase):
         )
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+    # test to create a tag and verifies that it converts to the correct string
+    def test_tag_str(self):
+        """Test the tag string representation"""
+        tag = models.Tag.objects.create(
+            user=sample_user(),
+            name='Action'
+        )
+        # to check the string representation of the model
+        self.assertEqual(str(tag), tag.name)

@@ -38,3 +38,5 @@ class UserAdmin(BaseUserAdmin):
 
 # Register the models(with modified adminpage)
 admin.site.register(models.User, UserAdmin)
+# uses the default admin
+admin.site.register(models.Tag)
