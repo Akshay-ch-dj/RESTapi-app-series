@@ -27,8 +27,27 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Create a new user with encrypted password and return it"""
         # use the 'create_user' Manager function, validated_data contains all
-        # data ie, passed into the serializer(json) --> python dict.-kwargs
+        # data ie, passed into the serializer-fields(json)->python dict.-kwargs
         return get_user_model().objects.create_user(**validated_data)
+
+    # Assure the password is set using the set password function
+    # After the failure of tests 9-12
+    def update(self, instance, validated_data):
+        """Update a user, setting the password correctly and return it"""
+        # 'instance' is the model instance ie. linked to the ModelSerializer
+        # here that is the 'user' object.(the model linked)
+        # First remove the existing password from validated_data
+        password = validated_data.pop('password', None)  # a default return
+        # value is required for the python 'pop()' function, if the key absent
+        # update the rem. data
+        user = super().update(instance, validated_data)  # Super will call the
+        # default parent class(ModelSerializer) update function
+
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return user
 
 
 # After failing tests_users_api token generation tests(4,5,6 and 7)
@@ -40,6 +59,7 @@ class AuthTokenSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField(
         style={'input_type': 'password'},
+        # Allow whitespaces in password
         trim_whitespace=False
     )
 
