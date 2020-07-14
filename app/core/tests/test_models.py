@@ -66,6 +66,7 @@ class ModelTests(TestCase):
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
 
+    # TEST 5
     # test to create a tag and verifies that it converts to the correct string
     def test_tag_str(self):
         """Test the tag string representation"""
