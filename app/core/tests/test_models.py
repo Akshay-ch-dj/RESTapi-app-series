@@ -76,3 +76,13 @@ class ModelTests(TestCase):
         )
         # to check the string representation of the model
         self.assertEqual(str(tag), tag.name)
+
+    # Test to add new model Character(same as test_tag_str)
+    def test_Character_str(self):
+        """Test the Character string representation"""
+        # Sample
+        character = models.Character.objects.create(
+            user=sample_user(),
+            name='James Cole'
+        )
+        self.assertEqual(str(character), character.name)

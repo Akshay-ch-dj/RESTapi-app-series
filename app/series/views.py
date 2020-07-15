@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag
+from core.models import Tag, Character
 from series import serializers
 
 
@@ -34,3 +34,17 @@ class TagViewSet(viewsets.GenericViewSet,
         # and validated serializer will get passed as an argument, here it sets
         # the saved used to "Authenticated user"
         serializer.save(user=self.request.user)
+
+
+class CharacterViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+    """
+    Manage Characters in the Database
+    """
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+    queryset = Character.objects.all()
+    serializer_class = serializers.CharacterSerializer
+
+    def get_queryset(self):
+        """Return object for the current authenticated user"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')

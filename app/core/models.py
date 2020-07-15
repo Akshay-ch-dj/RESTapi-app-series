@@ -75,5 +75,21 @@ class Tag(models.Model):
     )
 
     def __str__(self):
-        """String representation"""
+        """String representation of Tag model"""
+        return self.name
+
+
+# For the series app 'Character' model
+class Character(models.Model):
+    """
+    Characters in the series
+    """
+    name = models.CharField(max_length=255)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        """String representation of Character model"""
         return self.name

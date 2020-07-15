@@ -10,6 +10,7 @@ app_name = 'series'
 # the urls for the viewset, only need to include router urls in 'urlpatterns'
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
+router.register('characters', views.CharacterViewSet)
 
 urlpatterns = [
     # router generates a list of urls associated with the viewsets
