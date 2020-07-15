@@ -77,3 +77,26 @@ class PrivateCharacterApiTests(TestCase):
         self.assertEqual(len(res.data), 1)
         # check the name returned
         self.assertEqual(res.data[0]['name'], character.name)
+
+    # TEST 4
+    # Tests for adding Character(http post), to test the create character
+    # successful, and character invalid
+    def test_create_character_successful(self):
+        """Test create a new character"""
+        payload = {'name': 'Agnes Nielson'}
+        self.client.post(CHARACTERS_URL, payload)
+
+        # Check the character gets added or not
+        exists = Character.objects.filter(
+            user=self.user,
+            name=payload['name'],
+        ).exists()
+        self.assertTrue(exists)
+
+    # TEST 5
+    def test_create_character_invalid(self):
+        """Test creating invalid character fails"""
+        payload = {'name': ''}
+        res = self.client.post(CHARACTERS_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

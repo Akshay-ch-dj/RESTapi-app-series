@@ -36,7 +36,9 @@ class TagViewSet(viewsets.GenericViewSet,
         serializer.save(user=self.request.user)
 
 
-class CharacterViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class CharacterViewSet(viewsets.GenericViewSet,
+                       mixins.ListModelMixin,
+                       mixins.CreateModelMixin):
     """
     Manage Characters in the Database
     """
@@ -48,3 +50,8 @@ class CharacterViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
     def get_queryset(self):
         """Return object for the current authenticated user"""
         return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    # Just like tags, to pass create character tests(TEST 4&5), need the mixin
+    def perform_create(self, serializer):
+        """Add a new character"""
+        serializer.save(user=self.request.user)
