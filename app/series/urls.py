@@ -11,6 +11,7 @@ app_name = 'series'
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
 router.register('characters', views.CharacterViewSet)
+router.register('series', views.SeriesViewSet)
 
 urlpatterns = [
     # router generates a list of urls associated with the viewsets

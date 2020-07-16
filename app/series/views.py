@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag, Character
+from core.models import Tag, Character, Series
 from series import serializers
 
 
@@ -50,3 +50,18 @@ class CharacterViewSet(BaseRecipeAttrViewset):
     """
     queryset = Character.objects.all()
     serializer_class = serializers.CharacterSerializer
+
+
+# All functionality create, retrive, update and view details.so -ModelViewSet-
+class SeriesViewSet(viewsets.ModelViewSet):
+    """
+    Manage Series in Database
+    """
+    serializer_class = serializers.SeriesSerializer
+    queryset = Series.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        """Retrive the recipes for the authenticated user"""
+        return self.queryset.filter(user=self.request.user)
