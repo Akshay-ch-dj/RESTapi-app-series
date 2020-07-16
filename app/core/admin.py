@@ -42,3 +42,5 @@ admin.site.register(models.User, UserAdmin)
 admin.site.register(models.Tag)
 # registering 'Character' model
 admin.site.register(models.Character)
+# registering 'Series' model
+admin.site.register(models.Series)

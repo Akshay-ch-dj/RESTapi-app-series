@@ -77,6 +77,7 @@ class ModelTests(TestCase):
         # to check the string representation of the model
         self.assertEqual(str(tag), tag.name)
 
+    # TEST 6
     # Test to add new model Character(same as test_tag_str)
     def test_Character_str(self):
         """Test the Character string representation"""
@@ -86,3 +87,22 @@ class ModelTests(TestCase):
             name='James Cole'
         )
         self.assertEqual(str(character), character.name)
+
+    # TEST 7
+    # Test to add a new model "Series" for creating series endpoints.
+    def test_series_str(self):
+        """Test the model "Series" string representation"""
+        # There are required fields and optional fields, only req. fields
+        # here out of series title(CharField), start_date(DatetimeField),
+        # status[completed/not](BoolField), rating(of 10, DecimalField)
+        # end_date,link(link to the official watch page of the series)
+        # watch rate(episodes per week)--[IntegerField]
+        # req fields:user, title, start_time(auto), status(compl./not), rating
+        series = models.Series.objects.create(
+            user=sample_user(),
+            title='Game of Thrones',
+            watch_rate=5,
+            status=True,
+            rating=8.98
+        )
+        self.assertEqual(str(series), series.title)

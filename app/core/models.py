@@ -3,6 +3,9 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 from django.conf import settings
+# To add timezone based on settings UTC
+from django.utils import timezone
+
 
 # Custom manager-default django behaviour changed, usname replaced with Email
 
@@ -93,3 +96,27 @@ class Character(models.Model):
     def __str__(self):
         """String representation of Character model"""
         return self.name
+
+
+# Real Series MODEL
+class Series(models.Model):
+    """
+    Series object
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+    title = models.CharField(max_length=255)
+    start_date = models.DateTimeField(default=timezone.now)
+    status = models.BooleanField(default=False)
+    watch_rate = models.IntegerField()
+    rating = models.DecimalField(max_digits=4, decimal_places=2)
+    # Use 'blank=True' to make CharField object optional
+    link = models.CharField(max_length=255, blank=True)
+    # The tags and Characters can be add as many-to-many relationships
+    characters = models.ManyToManyField('Character')
+    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title
