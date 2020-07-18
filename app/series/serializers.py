@@ -32,7 +32,8 @@ class SeriesSerializer(serializers.ModelSerializer):
     """
     characters = serializers.PrimaryKeyRelatedField(
         many=True,
-        # This lists the Characters with their id,
+        # lists the Characters with their id, detailed list will be created
+        # later, to specify each of its name other ID
         queryset=Character.objects.all()
     )
     tags = serializers.PrimaryKeyRelatedField(
@@ -49,3 +50,15 @@ class SeriesSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'start_date')
         # The 'Characters' and 'Tags' are seperate models, so need to add them
         # as special fields |^|
+
+
+# Adding SeriesDetailSerializer(modified version of SeriesSerializer(inherit))
+# Detail view specifies the tags and characters added to that series
+class SeriesDetailSerializer(SeriesSerializer):
+    """
+    Serialize a series detail
+    """
+    # Django RF allows nesting serializers, as like these, many=can have many
+    # characters associated with a series.
+    characters = CharacterSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)

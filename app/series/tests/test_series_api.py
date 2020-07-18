@@ -5,13 +5,32 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Series
-
-from series.serializers import SeriesSerializer
+from core.models import Series, Tag, Character
+from series.serializers import SeriesSerializer, SeriesDetailSerializer
 
 
 # Variable for series url
 SERIES_URL = reverse('series:series-list')
+
+
+# for detail api, need a url with idea
+# /api/series/serieses/1, need to pass in this argument(id), at the time of
+# creating url, a function for generating series url.
+def detail_url(series_id):
+    """Returns recipe detail URL"""
+    return reverse('series:series-detail', args=[series_id])
+
+
+# For the Series Detail API view
+# only name. no extra "**params" needed
+def sample_tag(user, name='Money Heist'):
+    """Create and return a sample Tag"""
+    return Tag.objects.create(user=user, name=name)
+
+
+def sample_character(user, name='Berlin'):
+    """Create and return a sample character"""
+    return Character.objects.create(user=user, name=name)
 
 
 # Helper function to create a series object with customization
@@ -61,6 +80,7 @@ class PrivateSeriesApiTests(TestCase):
         )
         self.client.force_authenticate(self.user)
 
+    # TEST 2
     def test_retrieve_series(self):
         """Test retrieving a list of Series objects"""
         sample_series(user=self.user)
@@ -76,6 +96,7 @@ class PrivateSeriesApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
+    # TEST 3
     def test_series_limitted_to_user(self):
         """Test retrieving Series objects to user"""
         user2 = get_user_model().objects.create_user(
@@ -95,4 +116,19 @@ class PrivateSeriesApiTests(TestCase):
         # Assert the st.code is 'HTTP_200_OK', only data returned fr auth.usr
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data, serializer.data)
+
+    # TEST 4
+    # For the detail series api Viewset
+    def test_view_series_detail(self):
+        """Test viewing a series detail"""
+        series = sample_series(user=self.user)
+        # To add an item on many to many fields
+        series.tags.add(sample_tag(user=self.user))
+        series.characters.add(sample_character(user=self.user))
+
+        url = detail_url(series.id)
+        res = self.client.get(url)
+        # Assertions
+        serializer = SeriesDetailSerializer(series)
         self.assertEqual(res.data, serializer.data)

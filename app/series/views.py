@@ -65,3 +65,15 @@ class SeriesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrive the recipes for the authenticated user"""
         return self.queryset.filter(user=self.request.user)
+
+    # In DRF "get_serializer_class" is the function called to retrieve the
+    # serializer class for a particuler request.,if one need to change to diff.
+    # serializer class for different actions that are available(detail api)
+    def get_serializer_class(self):
+        """Return appropriate serializer class"""
+        # "self.action"-for 'list', need to use the default 'serializer_class'
+        # for action 'retrieve', we need 'SeriesDetailSerializer'
+        if self.action == 'retrieve':
+            return serializers.SeriesDetailSerializer
+
+        return self.serializer_class
