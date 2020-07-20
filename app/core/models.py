@@ -1,3 +1,6 @@
+import uuid
+import os
+
 from django.db import models
 # The base classes need to use when customizing or overriding Django User model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
@@ -7,9 +10,18 @@ from django.conf import settings
 from django.utils import timezone
 
 
+# To add images to api, helper function, instance-creates the path
+def series_image_file_path(instance, filename):
+    """Generate File path for new series file"""
+    # Strip out the extension part of the file name
+    ext = filename.split('.')[-1]
+    # Creates a file with a random uuid and same extension.
+    filename = f"{uuid.uuid4()}.{ext}"
+
+    return os.path.join('uploads/series/', filename)
+
+
 # Custom manager-default django behaviour changed, usname replaced with Email
-
-
 class UserManager(BaseUserManager):
     """
     Manager for User profiles
@@ -117,6 +129,8 @@ class Series(models.Model):
     # The tags and Characters can be add as many-to-many relationships
     characters = models.ManyToManyField('Character')
     tags = models.ManyToManyField('Tag')
+    # Add the ImageField, pass reference to the function
+    Image = models.ImageField(null=True, upload_to=series_image_file_path)
 
     def __str__(self):
         return self.title

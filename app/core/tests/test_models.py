@@ -3,6 +3,8 @@ from django.test import TestCase
 # Instead of importing the model directly(not recommended)..import it from
 # settings so that - models only need to change there only.
 from django.contrib.auth import get_user_model
+# Importing the patch decorator
+from unittest.mock import patch
 
 from core import models
 
@@ -106,3 +108,22 @@ class ModelTests(TestCase):
             rating=8.98
         )
         self.assertEqual(str(series), series.title)
+
+    # Adding model field for uploading image,
+    # Always need to change the name of the uploaded file.To make sure all the
+    # name are consistent and to avoid conflicts.
+    # Add a function that will create a path to the image-and use a UUID, to
+    # uniqu. identify the image[series_image_file_path()]
+    # TEST 8:-Test image adding function, and use a UUID, to uniqually
+    @patch('uuid.uuid4')
+    def test_series_file_name_uuid(self, mock_uuid):
+        """Test the image is saved in the correct location"""
+        # Mock the default UID function, comes with UID library
+        uuid = 'test-uuid'  # Any name
+        # When uuid function gets called-change the def. value to return "uuid"
+        mock_uuid.return_value = uuid
+        # the parameters are:-instance(set to None), real file name(keep ext.)
+        file_path = models.series_image_file_path(None, 'myimage.jpg')
+
+        exp_path = f"uploads/series/{uuid}.jpg"
+        self.assertEqual(file_path, exp_path)
