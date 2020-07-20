@@ -132,3 +132,72 @@ class PrivateSeriesApiTests(TestCase):
         # Assertions
         serializer = SeriesDetailSerializer(series)
         self.assertEqual(res.data, serializer.data)
+
+    # Tests for creates series using API
+    # tests-for basic series, with tags assigned & ingredients assigned.
+    # TEST 5
+    def test_create_basic_series(self):
+        """Test creating series"""
+        payload = {
+            'title': '12 monkeys',
+            'status': True,
+            'watch_rate': 5,
+            'rating': 8.50
+        }
+        res = self.client.post(SERIES_URL, payload)
+        # std. http response code for creating objects.
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        # when an object is created in DRF it returnes a dictionary with
+        # created object, it is used to get the 'id' of created object.
+        series = Series.objects.get(id=res.data['id'])
+        # check each keys-assigned correctly-use 'getattr'-for api obj. key
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(series, key))
+
+    # TEST 6:- creating a series with tags assigned, pass in a list of tag
+    # id's when creating the series
+    def test_create_series_with_tags(self):
+        """Test creating a series with tags"""
+        tag1 = sample_tag(user=self.user, name='Sci-Fi')
+        tag2 = sample_tag(user=self.user, name='18+')
+        payload = {
+            'title': 'How I Met Your Mother',
+            'tags': [tag1.id, tag2.id],
+            'status': False,
+            'watch_rate': 3,
+            'rating': 5.00
+        }
+        res = self.client.post(SERIES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        series = Series.objects.get(id=res.data['id'])
+        # Need to retrive the tags created
+        tags = series.tags.all()
+        # check the no. of tags is '2'
+        self.assertEqual(tags.count(), 2)
+        # check the tags are same, 'assertIn' checks in lists, querysets
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    # TEST 7:- for series with characters
+    def test_create_series_with_characters(self):
+        """Test to create series with characters"""
+        character1 = sample_character(user=self.user, name='James Cole')
+        character2 = sample_character(user=self.user, name='The Witness')
+
+        payload = {
+            'title': '12 monkeys',
+            'characters': [character1.id, character2.id],
+            'status': True,
+            'watch_rate': 5,
+            'rating': 8.00
+        }
+        res = self.client.post(SERIES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        series = Series.objects.get(id=res.data['id'])
+        characters = series.characters.all()
+
+        self.assertEqual(characters.count(), 2)
+        self.assertIn(character1, characters)
+        self.assertIn(character2, characters)

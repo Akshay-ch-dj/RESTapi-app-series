@@ -77,3 +77,11 @@ class SeriesViewSet(viewsets.ModelViewSet):
             return serializers.SeriesDetailSerializer
 
         return self.serializer_class
+
+    # To add create series feature to the series viewset, just add the
+    # "perform_create" function.
+    def perform_create(self, serializer):
+        """Create a new series"""
+        serializer.save(user=self.request.user)
+        # ModelViewSet allows to create objects-as default., just assaign the
+        # authenticated user to it
