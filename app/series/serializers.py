@@ -62,3 +62,14 @@ class SeriesDetailSerializer(SeriesSerializer):
     # characters associated with a series.
     characters = CharacterSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
+
+
+# Adding Serializer to process the image uploaded
+class SeriesImageSerializer(serializers.ModelSerializer):
+    """
+    serializer for uploading images to series
+    """
+    class Meta:
+        model = Series
+        fields = ('id', 'image')
+        read_only_fields = ('id',)

@@ -130,7 +130,7 @@ class Series(models.Model):
     characters = models.ManyToManyField('Character')
     tags = models.ManyToManyField('Tag')
     # Add the ImageField, pass reference to the function
-    Image = models.ImageField(null=True, upload_to=series_image_file_path)
+    image = models.ImageField(null=True, upload_to=series_image_file_path)
 
     def __str__(self):
         return self.title

@@ -2,6 +2,13 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+# Inbuilt python fun. to generate temp. files
+import tempfile
+import os
+
+# Image library from Pillow
+from PIL import Image
+
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -13,11 +20,17 @@ from series.serializers import SeriesSerializer, SeriesDetailSerializer
 SERIES_URL = reverse('series:series-list')
 
 
+# To generate the upload image URL
+def image_upload_url(series_id):
+    """Return URL for series image upload"""
+    return reverse('series:series-upload-image', args=[series_id])
+
+
 # for detail api, need a url with idea
 # /api/series/serieses/1, need to pass in this argument(id), at the time of
 # creating url, a function for generating series url.
 def detail_url(series_id):
-    """Returns recipe detail URL"""
+    """Returns Series detail URL"""
     return reverse('series:series-detail', args=[series_id])
 
 
@@ -263,3 +276,55 @@ class PrivateSeriesApiTests(TestCase):
         self.assertEqual(len(tags), 1)
         self.assertEqual(len(characters), 0)
         self.assertIn(new_tag, tags)
+
+
+# New Test class for Image uploading functionality
+class SeriesImageUploadTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'test@akshay.com',
+            'testpass'
+        )
+        self.client.force_authenticate(self.user)
+        # A sample series instance for uploading, add object in test setup cz
+        # not need to manipulate one in image fn. testing(need readymade one)
+        self.series = sample_series(user=self.user)
+
+    # Before the test it runs setUp() fn, there is "tearDown()" which runs
+    # After the test runs.[here it is to kept file sys. clean after test]
+    def tearDown(self):
+        """To delete the leftover files after the SeriesImageUploadTests"""
+        self.series.image.delete()
+
+    # Two tests one is to test image uploading, and uploadig an invalid one.
+    # TEST 10:- image uploading
+    def test_upload_image_to_series(self):
+        """Test uploading an image to series"""
+        url = image_upload_url(self.series.id)
+        # need a context manager with the tempfile, to create a named tempfile
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            # Create an temp. image file, upload it through api, Assertions
+            # Creates a 10px X 10px black square.
+            img = Image.new('RGB', (10, 10))
+            # ntf= the file to save it
+            img.save(ntf, format='JPEG')
+            # seek-> in the end after saving,need it reset to 0 to access file
+            ntf.seek(0)
+            # need a multipart form request(form with data), default:json
+            res = self.client.post(url, {'image': ntf}, format='multipart')
+
+        # Assertions
+        self.series.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('image', res.data)
+        self.assertTrue(os.path.exists(self.series.image.path))
+
+    # Testing uploading a bad image
+    def test_upload_image_bad_request(self):
+        """Test uploading an invalid image"""
+        url = image_upload_url(self.series.id)
+        res = self.client.post(url, {'image': 'NOT IMAGE'}, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
