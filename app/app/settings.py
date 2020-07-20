@@ -126,6 +126,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+# 127.0.0.1:8000/static will map to static directories, llly media will map.
 
+# Tells django where to look and store media.
+MEDIA_ROOT = '/vol/web/media'
+
+# collect static in django collects static files from
+STATIC_ROOT = '/vol/web/static'
 # custom User model authorization
 AUTH_USER_MODEL = 'core.User'
