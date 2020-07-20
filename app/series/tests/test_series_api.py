@@ -201,3 +201,65 @@ class PrivateSeriesApiTests(TestCase):
         self.assertEqual(characters.count(), 2)
         self.assertIn(character1, characters)
         self.assertIn(character2, characters)
+
+    # Testing the update series feature, partial and full update.
+    # TEST 8:- patch
+    def test_partial_update_series(self):
+        """Test updating a series with patch"""
+        series = sample_series(user=self.user)
+        series.tags.add(sample_tag(user=self.user))
+
+        # Replace the default tag with a new tag
+        new_tag = sample_tag(user=self.user, name="mafia")
+
+        payload = {
+            'title': "The End of the Fu**ing World",
+            'tags': [new_tag.id]
+        }
+        # use the detail url to do the patch
+        url = detail_url(series.id)
+        # patch request
+        self.client.patch(url, payload)
+
+        # retrieve the update to the series from the database, and check match.
+        # refreshes the details in the series from the database., in python db-
+        # changes wont get affect in the object unless "refresh_from_db".
+        series.refresh_from_db()
+        self.assertEqual(series.title, payload['title'])
+        tags = series.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    # TEST 9:- FULL UPDATE
+    def test_full_update_series(self):
+        """Test updating a series with put"""
+        series = sample_series(user=self.user)
+        # Adding a default tag and character
+        series.tags.add(sample_tag(user=self.user))
+        series.characters.add(sample_character(user=self.user))
+
+        # The new tag to be put
+        new_tag = sample_tag(user=self.user, name="sitcom")
+
+        # The payload
+        payload = {
+            'title': "The office",
+            'status': False,
+            'watch_rate': 3,
+            'rating': 8.00,
+            'tags': [new_tag.id]
+        }
+        # put request
+        url = detail_url(series.id)
+        self.client.put(url, payload)
+
+        series.refresh_from_db()
+        self.assertEqual(series.title, payload['title'])
+        self.assertEqual(series.status, payload['status'])
+        self.assertEqual(series.watch_rate, payload['watch_rate'])
+        self.assertEqual(series.rating, payload['rating'])
+        tags = series.tags.all()
+        characters = series.characters.all()
+        self.assertEqual(len(tags), 1)
+        self.assertEqual(len(characters), 0)
+        self.assertIn(new_tag, tags)
