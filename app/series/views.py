@@ -64,9 +64,35 @@ class SeriesViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    # If any function intended as private, provide the fun. name '_fun-name'
+    # priv. fun to convert the filter string to intergers.
+    def _params_to_ints(self, qs):
+        """Convert the List of strings ID's to a list of integers"""
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
         """Retrive the series for the authenticated user"""
-        return self.queryset.filter(user=self.request.user)
+        # Adding filter feature to API,need extracting the comma seperated
+        # strings-convert it to their id(integer), use DB query to filter out.
+        # 'query_params'- is variable in request parameter ie a dictionary
+        tags = self.request.query_params.get("tags")  # string retrieved
+        characters = self.request.query_params.get("characters")
+
+        # refernce the queryset, apply the filtes and return the same
+        queryset = self.queryset
+        # if tags is not None(default ret. of get())
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            # Django syntax: filtering on foreignkey objects, tags field has
+            # a foreignkey relationship with tags table id, need to filter by
+            # that id('__' represents that remote table), 'in'- function
+            # to return all the tags that matches with id in given list.
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if characters:
+            character_ids = self._params_to_ints(characters)
+            queryset = queryset.filter(characters__id__in=character_ids)
+
+        return queryset.filter(user=self.request.user)
 
     # In DRF "get_serializer_class" is the function called to retrieve the
     # serializer class for a particuler request.,if one need to change to diff.

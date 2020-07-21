@@ -147,7 +147,7 @@ class PrivateSeriesApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     # Tests for creates series using API
-    # tests-for basic series, with tags assigned & ingredients assigned.
+    # tests-for basic series, with tags assigned & characters assigned.
     # TEST 5
     def test_create_basic_series(self):
         """Test creating series"""
@@ -321,10 +321,62 @@ class SeriesImageUploadTests(TestCase):
         self.assertIn('image', res.data)
         self.assertTrue(os.path.exists(self.series.image.path))
 
-    # Testing uploading a bad image
+    # TEST 11:- Test uploading a bad image
     def test_upload_image_bad_request(self):
         """Test uploading an invalid image"""
         url = image_upload_url(self.series.id)
         res = self.client.post(url, {'image': 'NOT IMAGE'}, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # Tests to add filtering options
+    # TEST 12:-
+    def test_filter_series_by_tags(self):
+        """Test Returning series objects with specific tags"""
+        # create 3 series objects, 2 with tags,1 with no tags
+        series1 = sample_series(user=self.user, title='Lost')
+        series2 = sample_series(user=self.user, title='Fargo')
+        tag1 = sample_tag(user=self.user, name='Post-Apocalypse')
+        tag2 = sample_tag(user=self.user, name='crime-investigation')
+        series1.tags.add(tag1)
+        series2.tags.add(tag2)
+        series3 = sample_series(user=self.user, title='Senfield')
+
+        # Pass values need to get- as dictionary,
+        # The way API works on filtering, pass the tags seperated by comma to
+        # filter the tagged results
+        res = self.client.get(
+            SERIES_URL,
+            {'tags': f"{tag1.id},{tag2.id}"}
+        )
+        # Serialize the series and check if they exists in the response.
+        serializer1 = SeriesSerializer(series1)
+        serializer2 = SeriesSerializer(series2)
+        serializer3 = SeriesSerializer(series3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
+
+    # TEST 13:-
+    def test_filter_series_by_characters(self):
+        """Test returning series with specific characters"""
+        series1 = sample_series(user=self.user, title="Twin Peakes")
+        series2 = sample_series(user=self.user, title="Better call Saul")
+        character1 = sample_character(user=self.user, name="Saul Goodman")
+        character2 = sample_character(user=self.user, name="Laura Palmer")
+
+        series1.characters.add(character1)
+        series2.characters.add(character2)
+        series3 = sample_series(user=self.user, title="Mr. Bean")
+
+        res = self.client.get(
+            SERIES_URL,
+            {'characters': f"{character1.id},{character2.id}"}
+        )
+
+        serializer1 = SeriesSerializer(series1)
+        serializer2 = SeriesSerializer(series2)
+        serializer3 = SeriesSerializer(series3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
