@@ -23,7 +23,24 @@ class BaseSeriesAttrViewset(viewsets.GenericViewSet,
     # override get_queryset function
     def get_queryset(self):
         """Return objects for the current authenticated user only"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
+        # return self.queryset.filter(user=self.request.user).order_by('-name')
+
+        # The modifications needed to pass the assigned filter tests
+        assigned_only = bool(
+            # "assigned_only" gonna be '1' or '0', and in the query_params
+            # there is no 'type' concept(like str, int)..there need convert
+            # to interger then to Boolean, set default=0
+            int(self.request.query_params.get('assigned_only', 0))
+        )
+        queryset = self.queryset
+        if assigned_only:
+            # return only tags and characters assigned.
+            queryset = queryset.filter(series__isnull=False)
+
+        # To get unique items test pass,
+        return queryset.filter(
+            user=self.request.user
+        ).order_by('-name').distinct()
 
     # To pass tag tests 4&5-need to add CreateModelMixin[viewsets are custom.
     # using mixins], then it needs to override the perform_create,to assign the

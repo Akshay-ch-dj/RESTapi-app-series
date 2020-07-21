@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Tag
+from core.models import Tag, Series
 
 from series.serializers import TagSerializer
 
@@ -100,3 +100,53 @@ class PrivateTagApiTests(TestCase):
         res = self.client.post(TAGS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # TEST 6:- assure filter only assaigned tags
+    def test_retrieve_tags_assigned_to_series(self):
+        """Test Filtering Tags by those assigned to series"""
+        # Create two tags one assigned and other unassigned., then test
+        tag1 = Tag.objects.create(user=self.user, name="Horror")
+        tag2 = Tag.objects.create(user=self.user, name="Musical")
+
+        series = Series.objects.create(
+            title="Hill of Haunting House",
+            status=False,
+            rating=8.50,
+            watch_rate=5,
+            user=self.user
+        )
+        series.tags.add(tag1)
+        # filter by the tags that are assaigned only.
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+
+        serializer1 = TagSerializer(tag1)
+        serializer2 = TagSerializer(tag2)
+
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    # TEST 7:- Assure no tag is duplicated, only unique tags returned
+    def test_retrieve_tags_assigned_unique(self):
+        """Test filtering tags by assigned returns unique items"""
+        tag = Tag.objects.create(user=self.user, name='Cartoon')
+        Tag.objects.create(user=self.user, name='Fun')
+        series1 = Series.objects.create(
+            title="Scooby Doo",
+            status=False,
+            rating=8.23,
+            watch_rate=5,
+            user=self.user
+        )
+        series1.tags.add(tag)
+        series2 = Series.objects.create(
+            title='Bumble bees',
+            status=False,
+            rating=8.75,
+            watch_rate=5,
+            user=self.user
+        )
+        series2.tags.add(tag)
+
+        res = self.client.get(TAGS_URL, {'assigned_only': 1})
+        # There need a second dummy tag for the transparancy of the test
+        self.assertEqual(len(res.data), 1)

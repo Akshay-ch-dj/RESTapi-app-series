@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Character
+from core.models import Character, Series
 
 from series.serializers import CharacterSerializer
 
@@ -59,7 +59,7 @@ class PrivateCharacterApiTests(TestCase):
         self.assertEqual(res.data, serializer.data)
 
     # TEST 3
-    def charaters_limited_to_user(self):
+    def test_characters_limited_to_user(self):
         """Test that only authenticated users gets the characters"""
         user2 = get_user_model().objects.create_user(
             'test2@akshay.com',
@@ -100,3 +100,54 @@ class PrivateCharacterApiTests(TestCase):
         res = self.client.post(CHARACTERS_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # TEST 6:- Similer filterig tests as on tags
+    def test_retrieve_characters_assigned_to_series(self):
+        """Test filtering characters by those assaigned to series"""
+        character1 = Character.objects.create(
+            user=self.user, name='Abegille Mac'
+        )
+        character2 = Character.objects.create(
+            user=self.user, name="Andy Christopher"
+        )
+        series = Series.objects.create(
+            title="Tom & Jerry",
+            status=False,
+            watch_rate=4,
+            rating=9.00,
+            user=self.user
+        )
+        series.characters.add(character1)
+        res = self.client.get(CHARACTERS_URL, {'assigned_only': 1})
+
+        serializer1 = CharacterSerializer(character1)
+        serializer2 = CharacterSerializer(character2)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
+
+    # TEST &:- uniqness of characters
+    def test_retrieve_characters_assigned_unique(self):
+        """Test filtering characters by assigned return unique items"""
+        character = Character.objects.create(user=self.user, name="Magneto")
+        Character.objects.create(user=self.user, name="Wolverine")
+
+        series1 = Series.objects.create(
+            title="X-men origins",
+            status=False,
+            watch_rate=4,
+            rating=7.8,
+            user=self.user
+        )
+        series1.characters.add(character)
+        series2 = Series.objects.create(
+            title="Bunny Golf",
+            status=True,
+            watch_rate=9,
+            rating=10,
+            user=self.user
+        )
+        series2.characters.add(character)
+
+        res = self.client.get(CHARACTERS_URL, {'assigned_only': 1})
+
+        self.assertEqual(len(res.data), 1)
