@@ -1,0 +1,145 @@
+https://docs.djangoproject.com/en/2.2/topics/testing/tools/#overview-and-a-quick-example
+
+The test client does not require the Web server to be running. In fact, it will
+run just fine with no Web server running at all! That’s because it avoids the
+overhead of HTTP and deals directly with the Django framework. This helps make
+the unit tests run quickly.
+
+SECTION 1
+
+POSTGRESS SETUP ON DOCKER
+change  the docker compose file..
+modify docker compose file
+
+CREATING MANAGEMENT FOLDER
+By convention management commands(in commands dir.) are stored inside
+management directory
+
+To add management command to docker-compose file...Head over to the command
+Section...add an extra "python manage.py wait_for_db" before the runserver
+
+SECTION 2
+
+Users APP:
+- Manage User Endpoints
+- Create Users, update Users, change users
+- setup creation
+- test the token-creation, invalid credentials, non-existant user, no password request
+- create token API:- creation of a user- to pass the unit tests
+- setup url - to access API
+- Add manage user endpoints:- Allow the auth. user to update their own profile (name, password, view objects)
+
+SECTION 3
+
+Create "series" app
+
+1) Add tags API:- to help tagging, ie assaigned to different series genre helps filtering
+    the series.
+   - create a new app "series".
+   - All the series related endpoints are stored inside this app
+     ie -> For creating and updating a series list
+        -> Creating and updating tags and episodes(data).
+     [All the models gonna be inside the core app]
+
+     i) tag model:- Accept the 'name' of the tag and 'user' who owns the tag.
+        --> add a unit test for getting the tag as a string
+        --> implement model
+        --> register the model with admin
+        --> run migration
+     ii) List tags API
+        --> Add tests..
+        --> implement feature: to list our tag from list Tags API
+        --> create Tag Viewset view with ListModelMixin
+        --> Bind the urls, queryset filtered
+     iii) Add create Tags feature
+        --> Add tests
+        --> Endpoints Created
+     iV  Add Character model
+        --> Create test and add Character model, register it on admin
+        --> added serializer, Viewset, route urls
+      V  Features for creating Characters for the series app API
+        --> Add basic tests
+        --> Endpoints created with req. filters, post fun.
+    Vii  Refractor the tags and character API
+        --> There are a lot of similarities between the tags and character API
+        --> Its like almost repeat task.
+        --> DRY pattern not applicable, so it needs a Refractor..
+        --> TDD helps in this case, can do without breaking any major functionality.
+        --> To refractor, create a base class that contains the common cases of both
+            the classes, will make code easier and reduces the code duplication
+    Viii  Creating Series app end points
+        --> Creating a new model to handle series objects[until now we've go User, Tag and Character models]
+        --> As usual start with test.
+        --> Create model Series.
+        --> Added req fields, migrated, registered on admin
+     ix  Add List Series API.(like a summery of all the series)
+        --> Start by writing unit test to list the Serials, then make the test pass.
+        --> new "test_series_api.py" file.
+        --> added serializer for the Series model
+        ######  refer PrimaryKeyRelatedField #####
+        ###### refer ModelViewSet ######
+        --> returnes only tag and character ids of all.
+      X  Add series detail API( return more details about the series)
+        --> returnes all tags and characters
+     xi  Creating series with series API
+        --> create tests, one for basic series, another with tags assigned
+            and with ingredients assigned.
+        --> Implement creating series feature
+    xii  Update series Feature
+        --> Adding update functionality to the API,() inbuilt django
+            feature)
+        --> only added tests for it(to complete tests)
+   xiii  Adding images to the API
+        --> add pillow requirement, need to install the pillow python package
+        --> add Pillow>=5.3.0,<5.4.0 to requirements.
+        --> to Dockerfile,
+            add jpeg dev dependency with.
+            RUN apk add --update --no-cache postgresql-client jpeg-dev
+            RUN apk add --update --no-cache --virtual .tmp-build-deps \
+                  gcc libc-dev linux-headers postgresql-dev musl-dev zlib zlib-dev
+            >) need to change file structure in the docker container, so that we can store
+               static and media files within the container without getting error
+            >) create 2 new directoreis,
+               RUN mkdir -p /vol/web/media
+                it as vol(volume) for future media sharing capabilities.
+                '-p' just indicates create all the subdirectories if not found.
+               RUN mkdir -p /vol/web/static
+            >) Need to change the ownership of the files to the added user before switching the user.
+               RUN chown -R user:user /vol/
+                It says the ownership of all the directories with in the vol. directory to the
+                custom user. '-R' means recursive(permissions to all subdirectories in the vol folder)
+            >) Add the permissions,
+               RUN chmod -R 755 /vol/web
+                what it means, the owner can do modifications rest can read and execute from the directory.
+        --> To the django settings,
+            >) Configure the static url, media url, static root and media root
+            >)  STATIC_URL = '/static/'
+                MEDIA_URL = '/media/'
+                # 127.0.0.1:8000/static will map to static directories, llly media will map.
+
+                # Tells django where to look and store media.
+                MEDIA_ROOT = '/vol/web/media'
+
+                # collect static in django collects static files from
+                STATIC_ROOT = '/vol/web/static'
+        -->  Edit the projects urls.
+        --> Rebuild the dockerfile.
+   xiv)  Modify the Series model to accept imagefield.
+        --> Add function to generate unique name after test.
+        --> add ImageField to the model Series
+    xv)  API for uploading images
+        --> create unit tests to test the uploading functionality
+        --> Add feature to upload images
+            >) Add serializer
+
+   xvi)  Filtering Series objects
+        --> Add feature to filter series objects by tags or characters.
+        --> Make em easy to find.
+        --> create with tests
+  xvii)  Add exclusive tags and characters filtering
+        --> Filter tags and characters that are assigned to a certain series object only
+        --> Filter series by assigned tags and characters.
+        -->"?assigned_only=1" on the browser filters only tags and
+            characters which are either assigned to a series.
+
+############### COMPLETED P1 ##################################
